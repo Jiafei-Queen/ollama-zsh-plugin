@@ -1,0 +1,70 @@
+#compdef ollama
+
+_ollama_probe_running() {
+    command ollama ps 2>/dev/null | awk 'NR>1 {print $1}'
+}
+
+_ollama_stop_all() {
+    local model
+    for model in $(_ollama_probe_running); do
+        command ollama stop "$model"
+    done
+}
+
+_ollama() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+  local -a commands
+  commands=(
+    'serve:Start ollama'
+    'create:Create a model from a Modelfile'
+    'show:Show information for a model'
+    'run:Run a model'
+    'stop:Stop a running model'
+    'pull:Pull a model from a registry'
+    'push:Push a model to a registry'
+    'list:List models'
+    'ps:List running models'
+    'cp:Copy a model'
+    'rm:Remove a model'
+    'help:Help about any command'
+  )
+  _arguments -C \
+    '1: :->command' \
+    '*:: :->args'
+  case $state in
+    (command)
+      _describe -t commands 'ollama commands' commands
+      ;;
+    (args)
+      case $line[1] in
+        (run|show|rm|cp)
+          local -a models
+          models=(${(f)"$(command ollama list 2>/dev/null | tail -n +2 | awk '{print $1}')"})
+          compadd -a models
+          ;;
+        (stop)
+          local -a running_models
+          running_models=(${(f)"$( _ollama_probe_running )"})
+          
+          _arguments \
+            '1: :((all\:"Stop all running models"))' \
+            '*::model:(( $running_models ))'
+          ;;
+        (create)
+          _arguments '-f[Specify Modelfile]:filename:_files'
+          ;;
+        (push)
+          _arguments '1:model name' '2:destination'
+          ;;
+        (list|ps|serve|pull)
+          ;;
+        (help)
+          _describe -t commands 'ollama commands' commands
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_ollama "$@"
