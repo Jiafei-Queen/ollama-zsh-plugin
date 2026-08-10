@@ -1,20 +1,36 @@
 # 内部辅助函数
-_ollama_stop_all() {
-    local model
-    for model in $(ollama ps 2>/dev/null | awk 'NR>1 {print $1}'); do
-        command ollama stop "$model"
-    done
-}
+SCRIPT_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/ollama"
+_ollama_probe_running="$SCRIPT_DIR/ollama_probe_running.sh"
+_ollama_stop_all="$SCRIPT_DIR/ollama_stop_all.sh"
 
-# 包装函数（拦截命令）
 ollama() {
-    if [[ "$1" == "stop" && "$2" == "all" ]]; then
-        _ollama_stop_all
-    elif [[ "$1" == "run" && -n "$OLLAMA_STOPALL_BEFORE_RUN" ]]; then
-        _ollama_stop_all
-        echo "ollama-plugin: Stop running models..."
-        command ollama "$@"
-    else
-        command ollama "$@"
-    fi
+    case "$1" in
+        "stop")
+            if [[ "$2" == "all" ]]; then
+                /bin/sh "$_ollama_stop_all"
+                return
+            fi
+            ;;
+        "run")
+            if [[ -n "$OLLAMA_STOPALL_BEFORE_RUN" && -n "$2" ]]; then
+                running=false
+
+                local -a models
+                models=(${(f)"$(/bin/sh "$_ollama_probe_running")"})
+
+                for model in $models; do
+                    if [[ "$model" == "$2" ]]; then
+                        running=true
+                    fi
+                done
+
+                if [[ ! $running ]]; then
+                    echo "ollama-plugin: Stop running models..."
+                    /bin/sh "$_ollama_stop_all" "$2"
+                fi
+            fi
+            ;;
+    esac
+
+    command ollama "$@"
 }

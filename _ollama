@@ -1,14 +1,15 @@
 #compdef ollama
 
-_ollama_probe_running() {
-    command ollama ps 2>/dev/null | awk 'NR>1 {print $1}'
-}
+SCRIPT_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/ollama"
+_ollama_probe_running="$SCRIPT_DIR/ollama_probe_running.sh"
+_ollama_list_models="$SCRIPT_DIR/ollama_list_models.sh"
 
-_ollama_stop_all() {
-    local model
-    for model in $(_ollama_probe_running); do
-        command ollama stop "$model"
-    done
+_ollama_complete_models() {
+  if (( CURRENT == 2 )); then
+    local -a models
+    models=(${(f)"$(/bin/sh "$1" 2>/dev/null)"})
+    (( ${#models} )) && compadd -a models
+  fi
 }
 
 _ollama() {
@@ -39,17 +40,15 @@ _ollama() {
     (args)
       case $line[1] in
         (run|show|rm|cp)
-          local -a models
-          models=(${(f)"$(command ollama list 2>/dev/null | tail -n +2 | awk '{print $1}')"})
-          compadd -a models
+          _ollama_complete_models "$_ollama_list_models"
           ;;
         (stop)
-          local -a running_models
-          running_models=(${(f)"$( _ollama_probe_running )"})
-          
-          _arguments \
-            '1: :((all\:"Stop all running models"))' \
-            '*::model:(( $running_models ))'
+          if (( CURRENT == 2 )); then
+            local -a running_models display
+            running_models=(${(f)"$(/bin/sh "$_ollama_probe_running" 2>/dev/null)"})
+            display=('Stop all running models')
+            compadd -d display all $running_models
+          fi
           ;;
         (create)
           _arguments '-f[Specify Modelfile]:filename:_files'
