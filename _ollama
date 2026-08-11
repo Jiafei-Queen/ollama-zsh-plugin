@@ -56,7 +56,27 @@ _ollama() {
         (push)
           _arguments '1:model name' '2:destination'
           ;;
-        (list|ps|serve|pull)
+        (pull)
+          kw=$words[$CURRENT]
+          if [[ -z "$kw" ]]; then return; fi
+          zle -M "⏳ Loading Ollama models for '${kw}'..."
+
+          # 如果关键词以 `:` 结尾 -> 用户要详细模型 tag
+          local -a models
+          if [[ "$kw" == *":" ]]; then
+            models=(${(f)"$(curl -s "https://ollama.com/library/${kw:0:-1}/tags" | grep -o 'value="'${kw}'[^"]*"' | sed 's/value="//;s/"$//')"})
+          else
+            models=(${(f)"$(curl -s "https://ollama.com/search?q=${kw}" | grep -o 'title="'${kw}'[^"]*"' | sed 's/title="//;s/"$//')"})
+          fi
+
+          # 添加补全选项 or 未找到提示
+          if (( ${#models} > 0 )); then
+            compadd -a models
+          else
+            _message "No models found"
+          fi
+          ;;
+        (list|ps|serve)
           ;;
         (help)
           _describe -t commands 'ollama commands' commands
