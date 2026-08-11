@@ -24,7 +24,7 @@ ollama() {
                     fi
                 done
 
-                if [[ ! $running ]]; then
+                if [[ $running == false && ${#models[@]} > 0 ]]; then
                     echo "ollama-plugin: Stop running models..."
                     /bin/sh "$_ollama_stop_all" "$2"
                 fi
