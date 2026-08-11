@@ -33,7 +33,7 @@ ollama() {
     ;;
   "ps")
     shift
-    zsh "$_ollama_ps" "$@"
+    /bin/bash "$_ollama_ps" "$@"
     return
     ;;
   esac
