@@ -27,7 +27,28 @@ source ~/.zshrc
 ## Usage
 
 ### Basic completion
-Once installed, the plugin will automatically provide command completion for Ollama. Type `ollama` followed by a space and press Tab to see available commands. For commands that work with models (`run`, `show`, 'stop', `rm`, `cp`), pressing Tab after the command will suggest available model names.
+Once installed, the plugin will automatically provide command completion for Ollama. Type `ollama` followed by a space and press Tab to see available commands. For commands that work with models (`run`, `show`, `stop`, `rm`, `cp`, `pull`), pressing Tab after the command will suggest available model names.
+
+### Better `ollama ps`
+- `ollama ps -f`
+
+```
+$ ollama ps -f
+gemma3:270m
+e7d36fb2c3b3
+409 MB
+100% GPU
+32K
+2 min
+```
+
+- `ollama ps [nispcu]`
+
+```
+$ ollama ps "nsc" 
+NAME   		SIZE		CONTEXT		
+gemma3:270m	409 MB		32K
+```
 
 ### Stop all models
 `ollama stop all`
