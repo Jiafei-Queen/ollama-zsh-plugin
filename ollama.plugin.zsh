@@ -3,6 +3,7 @@ SCRIPT_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/ollama"
 _ollama_probe_running="$SCRIPT_DIR/ollama_probe_running.sh"
 _ollama_stop_all="$SCRIPT_DIR/ollama_stop_all.sh"
 _ollama_ps="$SCRIPT_DIR/ollama_ps.sh"
+_ollama_update="$SCRIPT_DIR/ollama_update.sh"
 
 ollama() {
   case "$1" in
@@ -34,6 +35,10 @@ ollama() {
   "ps")
     shift
     /bin/bash "$_ollama_ps" "$@"
+    return
+    ;;
+  "update")
+    /bin/sh "$_ollama_update"
     return
     ;;
   esac
